@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo
+  labels:
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: todo
+        tier: backend
+    spec:
+      volumes:
+      - name: dir
+        emptyDir: {}
+      - name: nginx-confs
+        configMap:
+          name: nginx-conf
+          items:
+            - key: default.conf
+              path: default.conf
+      containers:
+      - name: php
+        image: eu.gcr.io/k8s-test-project-339307/php-image:latest
+        ports:
+          - containerPort: 9000
+        volumeMounts:
+        - mountPath: /usr/share/nginx/todo
+          name: dir
+      - name: nginx-gcr
+        image: nginx:latest
+        ports:
+          - containerPort: 80
+        volumeMounts:
+          - name: dir
+            mountPath: /usr/share/nginx/todo
+          - name: nginx-confs
+            mountPath: /etc/nginx/conf.d
+#        livenessProbe:
+#          httpGet:
+#            path: /index.php
+#            port: 8080
+#          initialDelaySeconds: 3
+#          periodSeconds: 3
+      initContainers:
+      - name: init-container
+        image: eu.gcr.io/k8s-test-project-339307/php-image:latest
+        command: [ "sh", "-c" ]
+        args: [ "cp -r /usr/share/nginx/todo/* /dir" ]
+        volumeMounts:
+        - name: dir
+          mountPath: /dir
+      imagePullSecrets:
+      - name: gke-r

@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: todo
+  name: {{ include "todo.fullname" . }}
   labels:
-    tier: backend
+    tier: {{ .Values.tier }}
 spec:
   selector:
-    app: todo
-  type: NodePort
+    app: {{ .Values.app }}
+  type: {{ .Values.service.type }}
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+    - protocol: {{ .Values.service.protocol }}
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}

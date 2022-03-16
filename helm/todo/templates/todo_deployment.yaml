@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo
+  name: {{include "todo.fullname" . }}
   labels:
-    tier: backend
+    tier: {{ .Values.tier }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: todo
-      tier: backend
+      app: {{ .Values.app }}
+      tier: {{ .Values.tier }}
   template:
     metadata:
       labels:
-        app: todo
-        tier: backend
+        app: {{ .Values.app }}
+        tier: {{ .Values.tier }}
     spec:
       volumes:
       - name: dir
@@ -26,17 +26,17 @@ spec:
             - key: default.conf
               path: default.conf
       containers:
-      - name: php
-        image: eu.gcr.io/k8s-test-project-339307/php-image:latest
-        ports:
-          - containerPort: 9000
+      - name: {{ Values.php.name }}
+        image: "{{ .Values.php.repository }}:{{ .Values.php.tag }}"
+        ports: 
+          - containerPort: {{ .Values.php.port }}
         volumeMounts:
         - mountPath: /usr/share/nginx/todo
           name: dir
-      - name: nginx-gcr
-        image: nginx:latest
+      - name: {{ Values.image.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
-          - containerPort: 80
+          - containerPort: {{ .Values.image.port }}
         volumeMounts:
           - name: dir
             mountPath: /usr/share/nginx/todo
@@ -49,8 +49,8 @@ spec:
 #          initialDelaySeconds: 3
 #          periodSeconds: 3
       initContainers:
-      - name: init-container
-        image: eu.gcr.io/k8s-test-project-339307/php-image:latest
+      - name: {{ Values.init.name }}
+        image: "{{ .Values.init.repository }}:{{ .Values.init.tag }}"
         command: [ "sh", "-c" ]
         args: [ "cp -r /usr/share/nginx/todo/* /dir" ]
         volumeMounts:

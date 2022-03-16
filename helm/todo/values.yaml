@@ -2,12 +2,33 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+tier: backend
+app: todo
+
+
 replicaCount: 1
 
 image:
+  name: nginx-gcr
   repository: nginx
-  tag: stable
+  tag: latest
   pullPolicy: IfNotPresent
+  port: 80
+
+php:
+  name: php
+  repository: eu.gcr.io/k8s-test-project-339307/php-image
+  tag: latest
+  pullPolicy: IfNotPresent
+  port: 9000
+
+init:
+  name: init
+  repository: eu.gcr.io/k8s-test-project-339307/php-image
+  tag: latest
+  pullPolicy: IfNotPresent
+  
+  
 
 imagePullSecrets: []
 nameOverride: ""
@@ -32,9 +53,10 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: NodePort
+  protocol: TCP
   port: 80
-
+  targetPort: 80
 ingress:
   enabled: false
   annotations: {}
